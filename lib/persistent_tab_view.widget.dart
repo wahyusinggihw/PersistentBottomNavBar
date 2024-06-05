@@ -31,7 +31,7 @@ class PersistentTabView extends PersistentTabViewBase {
       final bool popAllScreensOnTapAnyTabs = false,
       final PopActionScreensType popActionScreens = PopActionScreensType.all,
       this.confineInSafeArea = true,
-      this.onWillPop,
+      this.popScope,
       this.stateManagement = true,
       this.handleAndroidBackButtonPress = true,
       final ItemAnimationProperties? itemAnimationProperties,
@@ -46,8 +46,8 @@ class PersistentTabView extends PersistentTabViewBase {
             "screens and items length should be same. If you are using the onPressed callback function of 'PersistentBottomNavBarItem', enter a dummy screen like Container() in its place in the screens"),
         assert(items!.length >= 2 && items.length <= 6,
             "NavBar should have at least 2 or maximum 6 items (Except for styles 15-18)"),
-        assert(handleAndroidBackButtonPress && onWillPop == null,
-            "If you declare the onWillPop function, you will have to handle the back function functionality yourself as your onWillPop function will override the default function."),
+        assert(handleAndroidBackButtonPress && popScope == null,
+            "If you declare the popScope function, you will have to handle the back function functionality yourself as your popScope function will override the default function."),
         super(
           key: key,
           context: context,
@@ -71,7 +71,7 @@ class PersistentTabView extends PersistentTabViewBase {
           floatingActionButton: floatingActionButton,
           resizeToAvoidBottomInset: resizeToAvoidBottomInset,
           bottomScreenMargin: bottomScreenMargin,
-          onWillPop: onWillPop,
+          popScope: popScope,
           isCustomWidget: false,
           confineInSafeArea: confineInSafeArea,
           stateManagement: stateManagement,
@@ -97,15 +97,15 @@ class PersistentTabView extends PersistentTabViewBase {
     final CustomWidgetRouteAndNavigatorSettings routeAndNavigatorSettings =
         const CustomWidgetRouteAndNavigatorSettings(),
     this.confineInSafeArea = true,
-    this.onWillPop,
+    this.popScope,
     this.stateManagement = true,
     this.handleAndroidBackButtonPress = true,
     this.hideNavigationBar,
     this.screenTransitionAnimation = const ScreenTransitionAnimation(),
   })  : assert(itemCount == screens.length,
             "screens and items length should be same. If you are using the onPressed callback function of 'PersistentBottomNavBarItem', enter a dummy screen like Container() in its place in the screens"),
-        assert(handleAndroidBackButtonPress && onWillPop != null,
-            "If you declare the onWillPop function, you will have to handle the back function functionality yourself as your onWillPop function will override the defualt function."),
+        assert(handleAndroidBackButtonPress && popScope != null,
+            "If you declare the popScope function, you will have to handle the back function functionality yourself as your popScope function will override the defualt function."),
         super(
           key: key,
           context: context,
@@ -119,7 +119,7 @@ class PersistentTabView extends PersistentTabViewBase {
           itemCount: itemCount,
           resizeToAvoidBottomInset: resizeToAvoidBottomInset,
           bottomScreenMargin: bottomScreenMargin,
-          onWillPop: onWillPop,
+          popScope: popScope,
           confineInSafeArea: confineInSafeArea,
           stateManagement: stateManagement,
           handleAndroidBackButtonPress: handleAndroidBackButtonPress,
@@ -180,7 +180,7 @@ class PersistentTabView extends PersistentTabViewBase {
 
   ///If you want to perform a custom action on Android when exiting the app, you can write your logic here. Returns context of the selected screen.
   @override
-  final Future<bool> Function(BuildContext?)? onWillPop;
+  final Future<bool> Function(BuildContext?)? popScope;
 
   ///Returns the context of the selected tab.
   @override
@@ -229,7 +229,7 @@ class PersistentTabViewBase extends StatefulWidget {
     this.popAllScreensOnTapOfSelectedTab,
     this.popAllScreensOnTapAnyTabs,
     this.popActionScreens,
-    this.onWillPop,
+    this.popScope,
     this.hideNavigationBarWhenKeyboardShows,
     this.itemAnimationProperties,
     this.isCustomWidget,
@@ -314,7 +314,7 @@ class PersistentTabViewBase extends StatefulWidget {
   final bool? stateManagement;
 
   ///If you want to perform a custom action on Android when exiting the app, you can write your logic here.
-  final Future<bool> Function(BuildContext)? onWillPop;
+  final Future<bool> Function(BuildContext)? popScope;
 
   ///Screen transition animation properties when switching tabs.
   final ScreenTransitionAnimation? screenTransitionAnimation;
@@ -684,17 +684,20 @@ class _PersistentTabViewState extends State<PersistentTabView> {
           null);
     }
 
-    if (widget.handleAndroidBackButtonPress || widget.onWillPop != null) {
-      return WillPopScope(
-        onWillPop: !widget.handleAndroidBackButtonPress &&
-                widget.onWillPop != null
-            ? widget.onWillPop!(_contextList[_controller!.index])
-                as Future<bool> Function()?
-            : widget.handleAndroidBackButtonPress && widget.onWillPop != null
+    if (widget.handleAndroidBackButtonPress || widget.popScope != null) {
+      return PopScope(
+        canPop: _controller!.index == 0
+            ? !Navigator.canPop(_contextList.first!)
+            : !Navigator.canPop(_contextList[_controller!.index]!),
+        onPopInvoked: (final didPop) => !widget.handleAndroidBackButtonPress &&
+                widget.popScope != null
+            ? widget.popScope!(_contextList[_controller!.index]) as Future<bool>
+                Function()?
+            : widget.handleAndroidBackButtonPress && widget.popScope != null
                 ? () async {
                     if (_controller!.index == 0 &&
                         !Navigator.canPop(_contextList.first!)) {
-                      return widget.onWillPop!(_contextList.first);
+                      return widget.popScope!(_contextList.first);
                     } else {
                       if (Navigator.canPop(_contextList[_controller!.index]!)) {
                         Navigator.pop(_contextList[_controller!.index]!);

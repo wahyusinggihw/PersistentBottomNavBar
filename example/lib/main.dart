@@ -225,7 +225,7 @@ class _ProvidedStylesExampleState extends State<ProvidedStylesExample> {
               ? 0.0
               : kBottomNavigationBarHeight,
           bottomScreenMargin: 0,
-          onWillPop: (final context) async {
+          popScope: (final context) async {
             await showDialog(
               context: context!,
               builder: (final context) => Container(
