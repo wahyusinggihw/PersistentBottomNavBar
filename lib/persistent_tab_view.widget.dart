@@ -642,15 +642,16 @@ class _PersistentTabViewState extends State<PersistentTabView> {
           navBarStyle: widget.navBarStyle,
           neumorphicProperties: widget.neumorphicProperties,
           customNavBarWidget: widget.customWidget,
-          onAnimationComplete: (final isAnimating, final isCompleted) {
+          onAnimationComplete: (
+              {final isAnimating = false, final isComplete = false}) {
             if (_isAnimating != isAnimating) {
               setState(() {
                 _isAnimating = isAnimating;
               });
             }
-            if (_isCompleted != isCompleted) {
+            if (_isCompleted != isComplete) {
               setState(() {
-                _isCompleted = isCompleted;
+                _isCompleted = isComplete;
               });
             }
           },
