@@ -4,7 +4,8 @@ description: An example project for persistent_bottom_nav_bar
 version: 1.0.0
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  # sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=3.4.1 <4.0.0"
 
 dependencies:
   flutter:
@@ -13,10 +14,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  
+
   persistent_bottom_nav_bar:
     path: ../
 
 flutter:
   uses-material-design: true
-
